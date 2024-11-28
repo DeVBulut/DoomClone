@@ -27,12 +27,18 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         MovePlayer();
+        
     }
 
     void Update()
     {
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
         DetectInput();
+
+        if(Input.GetKeyDown(KeyCode.Space) && grounded)
+        {
+            Jump();
+        }
 
         if(grounded)
         {
@@ -54,5 +60,10 @@ public class PlayerMovement : MonoBehaviour
     {
         moveDirection = oritentation.forward * verticalInput + oritentation.right * horizontalInput;
         rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
+    }
+
+    private void Jump()
+    {
+        rb.AddForce(Vector3.up * 4f, ForceMode.Impulse);
     }
 }
