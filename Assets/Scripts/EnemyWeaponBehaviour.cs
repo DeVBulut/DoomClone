@@ -1,4 +1,5 @@
 using UnityEngine;
+
 public class EnemyWeaponBehaviour : MonoBehaviour
 {
     [SerializeField] private float attackRange = 1.8f; // The range of the sphere overlap
@@ -6,8 +7,14 @@ public class EnemyWeaponBehaviour : MonoBehaviour
     [SerializeField] private float hitChance = 70f; // Chance to hit the player (in percentage)
     [SerializeField] private float attackCooldown = 0.8f; // Cooldown time for attacks
 
-        public bool isOnCooldown = false; // Cooldown status
-    public GameObject lockedTarget = null; // The locked player target
+    public bool isOnCooldown = false; // Cooldown status
+    public Animator animator;
+    public GameObject player;
+
+    private void Start()
+    {
+        animator = GetComponent<Animator>();
+    }
 
     private void Update()
     {
@@ -26,16 +33,18 @@ public class EnemyWeaponBehaviour : MonoBehaviour
         {
             if (hit.CompareTag("Player"))
             {
-                // Lock onto the player
-                lockedTarget = hit.transform.parent.gameObject;
-
                 // Roll for a chance to hit
                 float randomValue = Random.Range(0f, 100f);
                 if (randomValue <= hitChance)
                 {
                     // Get the PlayerController and call the Hit function
-                    PlayerController playerController = lockedTarget.GetComponent<PlayerController>();
-                    if(playerController != null) {Debug.Log("Controller Locked"); playerController.Hit();}
+                    PlayerController playerController = player.GetComponent<PlayerController>();
+                    if (playerController != null)
+                    {
+                        Debug.Log("Controller Locked");
+                        playerController.Hit();
+                        animator.Play("EnemyShoot");
+                    }
                     Debug.Log("Enemy Hit You!");
                 }
                 else
@@ -45,7 +54,7 @@ public class EnemyWeaponBehaviour : MonoBehaviour
 
                 // Start the cooldown
                 StartCoroutine(StartCooldown());
-                return; // Only attack one player at a time
+                return;
             }
         }
     }
@@ -55,6 +64,12 @@ public class EnemyWeaponBehaviour : MonoBehaviour
         isOnCooldown = true;
         yield return new WaitForSeconds(attackCooldown);
         isOnCooldown = false;
-        lockedTarget = null; // Reset target after cooldown
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        // Draw the attack range as a wire sphere when the object is selected in the editor
+        Gizmos.color = Color.red; // Set the color to red
+        Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }

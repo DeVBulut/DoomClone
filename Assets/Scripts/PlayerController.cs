@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     public bool _isDead = false;
     public TextMeshProUGUI healthText; 
     public TextMeshProUGUI armorText; 
+    Animator animator;
     public bool IsDead()
     {
         return _isDead;
@@ -20,6 +21,7 @@ public class PlayerController : MonoBehaviour
     {
         _currentHealth = _maxHealth;
         _currentArmor = _maxArmor;
+        animator = GetComponent<Animator>();
     }
     void Update()
     {
@@ -30,8 +32,8 @@ public class PlayerController : MonoBehaviour
     {
         Debug.Log("Hit - ");
         if (_isDead == true) return;
-        _currentHealth -= 10;
-        _currentArmor -= 10;
+        _currentHealth -= 3;
+        if(_currentArmor > 0){_currentArmor -= 10;}
         Debug.Log("Character hit!");
 
         if (_currentHealth <= 0)
@@ -44,6 +46,7 @@ public class PlayerController : MonoBehaviour
         _isDead = true;
         GetComponent<PlayerMovement>().enabled = false;
         GetComponent<PlayerWeaponBehaviour>().enabled = false;
+        animator.Play("PlayerDie");
     }
     
 

@@ -6,7 +6,7 @@ using UnityEngine;
 public class PlayerWeaponBehaviour : WeaponBehaviour
 {
     public Animator animator; 
-    public int AmmoCount = 50;
+    public int AmmoCount = 200;
     public TextMeshProUGUI ammoText; 
     void Update()
     {
