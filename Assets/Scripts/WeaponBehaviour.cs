@@ -10,10 +10,11 @@ public class WeaponBehaviour : MonoBehaviour
         //GetComponent<AudioSource>().Play();
         if (hit.transform.tag == "Enemy" || hit.transform.tag == "Player")
         {
-            CharacterBehaviour character = hit.transform.GetComponent<CharacterBehaviour>();
-             if (character != null && !character.IsDead()) 
+            EnemyBehaviour enemyBehaviour = hit.transform.GetComponent<EnemyBehaviour>();
+            if (enemyBehaviour != null && !enemyBehaviour.IsDead()) 
             {
-                character.Hit();
+                Debug.Log("Enemy Hit");
+                enemyBehaviour.Hit();
             }
         }
     }

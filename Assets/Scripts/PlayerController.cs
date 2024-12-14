@@ -3,30 +3,35 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class PlayerController : CharacterBehaviour
+public class PlayerController : MonoBehaviour
 {
-    public static PlayerController Instance;
-    public List<Key_Controller> KeysCollected;
-    [SerializeField] private GameObject _failureWindow;
-    [SerializeField] private TextMeshProUGUI _healthUIText;
-   private void Awake()
-{
-    Instance = this;
-    
-}
-      private void Update()
+    [SerializeField, Range(0, 10)] protected int _maxHealth = 10; // Set default max health to 3
+    protected int _currentHealth;
+    public bool _isDead = false;
+    public bool IsDead()
     {
-        _healthUIText.text = "Health: " + _currentHealth + "/" + _maxHealth; 
+        return _isDead;
     }
-     
-    public override void Die()
+    void Start()
+    {
+        _currentHealth = _maxHealth;
+    }
+    public void Hit()
+    {
+        if (_isDead == true) return;
+        _currentHealth -= 1;
+        Debug.Log("Character hit!");
+
+        if (_currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+    public void Die()
     {
         _isDead = true;
-        Debug.Log("Starting player");
-        _failureWindow.SetActive(true);
-        GetComponent<PlayerMovementBehaviour>().enabled = false;
+        GetComponent<PlayerMovement>().enabled = false;
         GetComponent<PlayerWeaponBehaviour>().enabled = false;
-        GetComponentInChildren<CameraController>().enabled = false;
     }
     
 
