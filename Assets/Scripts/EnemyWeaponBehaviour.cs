@@ -1,109 +1,60 @@
 using UnityEngine;
-
 public class EnemyWeaponBehaviour : MonoBehaviour
 {
-    public float detectionRadius = 10f; // Radius to detect the player
-    public float shootingCooldown = 2f; // Cooldown time for shooting
-    public float bulletSpeed = 20f; // Bullet speed
-    public Transform bulletSpawnPoint; // Where the bullets are spawned from
-    public GameObject bulletPrefab; // Bullet prefab to instantiate
-    public float missChance = 0.6f; // 60% chance to miss the shot
-    public Transform player; // Reference to the player
+    [SerializeField] private float attackRange = 1.8f; // The range of the sphere overlap
+    [SerializeField] private LayerMask detectionLayer; // Layer to detect the player
+    [SerializeField] private float hitChance = 70f; // Chance to hit the player (in percentage)
+    [SerializeField] private float attackCooldown = 0.8f; // Cooldown time for attacks
 
-    private float lastShootTime = 0f; // Time when the enemy last shot
-    private bool playerInRange = false; // To track if the player is in range
-    private bool playerVisible = false; // Whether the player is locked in or not
+        public bool isOnCooldown = false; // Cooldown status
+    public GameObject lockedTarget = null; // The locked player target
 
-    void Update()
+    private void Update()
     {
-        DetectPlayer();
-        
-        if (playerInRange && playerVisible && Time.time - lastShootTime >= shootingCooldown)
+        if (!isOnCooldown)
         {
-            ShootAtPlayer();
+            TryDetectAndAttackPlayer();
         }
     }
 
-    void DetectPlayer()
+    private void TryDetectAndAttackPlayer()
     {
-        // Detect the player within the radius using OverlapSphere
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, detectionRadius);
-        playerInRange = false;
+        // Cast a sphere overlap to detect objects within the range
+        Collider[] hits = Physics.OverlapSphere(transform.position, attackRange, detectionLayer);
 
-        foreach (var hitCollider in hitColliders)
+        foreach (Collider hit in hits)
         {
-            if (hitCollider.CompareTag("Player"))
+            if (hit.CompareTag("Player"))
             {
-                playerInRange = true;
-                player = hitCollider.transform; // Set the player reference
-                LockOnPlayer();
-                return;
+                // Lock onto the player
+                lockedTarget = hit.transform.parent.gameObject;
+
+                // Roll for a chance to hit
+                float randomValue = Random.Range(0f, 100f);
+                if (randomValue <= hitChance)
+                {
+                    // Get the PlayerController and call the Hit function
+                    PlayerController playerController = lockedTarget.GetComponent<PlayerController>();
+                    if(playerController != null) {Debug.Log("Controller Locked"); playerController.Hit();}
+                    Debug.Log("Enemy Hit You!");
+                }
+                else
+                {
+                    Debug.Log("Enemy missed the attack!");
+                }
+
+                // Start the cooldown
+                StartCoroutine(StartCooldown());
+                return; // Only attack one player at a time
             }
         }
-
-        playerInRange = false; // No player detected
-        playerVisible = false; // Reset visibility
     }
 
-    void LockOnPlayer()
+    private System.Collections.IEnumerator StartCooldown()
     {
-        // Lock onto the player only if they are in range and within line of sight
-        RaycastHit hit;
-        if (Physics.Linecast(transform.position, player.position, out hit))
-        {
-            if (hit.collider.CompareTag("Player"))
-            {
-                playerVisible = true;
-            }
-            else
-            {
-                playerVisible = false;
-            }
-        }
-        else
-        {
-            playerVisible = false;
-        }
-    }
-
-    void ShootAtPlayer()
-    {
-        lastShootTime = Time.time;
-
-        // Check if the shot misses with a 60% chance
-        bool isMissed = Random.value < missChance;
-        if (isMissed)
-        {
-            Debug.Log("Shot missed!");
-            return; // Shot missed, no bullet is fired
-        }
-
-        // If the shot hits, fire the bullet
-        FireBullet();
-    }
-
-    void FireBullet()
-    {
-        // Create the bullet
-        GameObject bullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, Quaternion.identity);
-
-        // Get direction to the player
-        Vector3 direction = (player.position - bulletSpawnPoint.position).normalized;
-
-        // Add velocity to the bullet
-        Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
-        if (bulletRb != null)
-        {
-            bulletRb.velocity = direction * bulletSpeed;
-        }
-
-        Debug.Log("Bullet fired at player.");
-    }
-
-    // Draw the detection radius in the Scene view (for debugging purposes)
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
+        isOnCooldown = true;
+        yield return new WaitForSeconds(attackCooldown);
+        isOnCooldown = false;
+        lockedTarget = null; // Reset target after cooldown
     }
 }

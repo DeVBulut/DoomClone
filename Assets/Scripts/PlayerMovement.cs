@@ -1,4 +1,7 @@
+using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
 using Vector3 = UnityEngine.Vector3;
 
 public class PlayerMovement : MonoBehaviour
@@ -7,13 +10,19 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed;
     public float groundDrag;
 
+    [Header("Jumping")]
+    public float jumpForce;       // Force applied for the jump
+    public float jumpCooldown;    // Cooldown between jumps
+    public float airMultiplier;   // Movement speed multiplier when in the air
+    bool readyToJump = true;      // To check if the player can jump
+
     [Header("Ground Check")]
     public float playerHeight;
     public LayerMask whatIsGround;
-    bool grounded;
+    public bool grounded;
 
     public Transform oritentation;
-    float horizontalInput; 
+    float horizontalInput;
     float verticalInput;
 
     Vector3 moveDirection;
@@ -27,31 +36,29 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         MovePlayer();
-        
     }
 
     void Update()
     {
-        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.1f + 0.2f, whatIsGround);
+        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight + 0.3f, whatIsGround);
         DetectInput();
 
-        if(grounded)
+        // Adjust drag based on grounded status
+        if (grounded)
         {
-            rb.drag = groundDrag; 
+            rb.drag = groundDrag;
         }
-        else 
+        else
         {
             rb.drag = groundDrag / 2;
         }
 
-        // if(onAStaircase)
-        // {
-        //     moveSpeed = 2;
-        // }
-        // else
-        // {
-        //     moveSpeed = 1;
-        // }
+        // Handle jump input
+        if (Input.GetKeyDown(KeyCode.Space) && readyToJump && grounded)
+        {
+            Jump();
+        }
+
     }
 
     private void DetectInput()
@@ -63,23 +70,50 @@ public class PlayerMovement : MonoBehaviour
     private void MovePlayer()
     {
         moveDirection = oritentation.forward * verticalInput + oritentation.right * horizontalInput;
-        rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
+
+        // Different speed multiplier for grounded vs air movement
+        if (grounded)
+        {
+            rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
+        }
+        else
+        {
+            rb.AddForce(moveDirection.normalized * moveSpeed * airMultiplier * 10f, ForceMode.Force);
+        }
+    }
+
+    private void Jump()
+    {
+        readyToJump = false;
+
+        // Reset vertical velocity before applying jump force
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
+        // Apply jump force
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
+        // Start jump cooldown
+        Invoke(nameof(ResetJump), jumpCooldown);
+    }
+
+    private void ResetJump()
+    {
+        readyToJump = true;
     }
 
     private void OnCollisionEnter(Collision other) 
     {
-        if(other.gameObject.tag == "Staircase")
+        if (other.gameObject.tag == "Staircase")
         {
-            moveSpeed = 1.6f; 
-        }    
+            moveSpeed = 1.6f;
+        }
     }
 
     private void OnCollisionExit(Collision other) 
     {
-        if(other.gameObject.tag == "Staircase")
+        if (other.gameObject.tag == "Staircase")
         {
-            moveSpeed = 0.85f; 
+            moveSpeed = 0.85f;
         }
     }
-    
 }
