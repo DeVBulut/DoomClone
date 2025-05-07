@@ -17,13 +17,11 @@ This project is a Unity-based recreation of the iconic first level (E1M1) from t
 
 > Visuals from the current prototype build:
 
-(![Doom Clone Screenshot 2](https://github.com/user-attachments/assets/887ca3e0-8a13-46f7-a7b2-57ab4157f618)
+![Doom Clone Screenshot 2](https://github.com/user-attachments/assets/887ca3e0-8a13-46f7-a7b2-57ab4157f618)
 *Sprite-based enemies mid-combat.*
 
 ![Doom Clone Screenshot 3](https://github.com/user-attachments/assets/91d3af34-0272-40cd-b980-6631a8c313fb)
 *Faithful level design structure and environment.*
-
-> *(Replace these paths with your actual image files.)*
 
 ---
 
